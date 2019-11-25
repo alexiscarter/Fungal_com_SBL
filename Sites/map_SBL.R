@@ -6,7 +6,7 @@ library(ggrepel)
 library(ggmap)
 library(ggsn)
 
-# Need API key to use get_map, not free access anymore
+# Need API key to use get_map
 
 # Geographic coordinates x and y from the plots data frame
 load("data/plots.rda")

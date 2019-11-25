@@ -188,8 +188,8 @@ var.part.all$part$fract$Adj.R.square
 
 # with capscale
 rda.all <- capscale(formula = seqtab.dbray ~ env.chem + env.horiz + env.myco, distance = NULL) # Inertia is variance, proportion is r.squared (in vegan)
-RsquareAdj(rda.all) # same than var.part, 0.3333739
-anova(rda.all) #0.001
+RsquareAdj(rda.all)
+anova(rda.all)
 
 ## Use function ‘capscale’ (db-RDA) to test significance of fractions of interest.
 ## Semi-Partial correlation
@@ -254,7 +254,6 @@ plot_ordination(ps.nosd.log.sp, vegan::scores(rda.X1, scaling = 1), type="sites"
   scale_color_manual(name = "Horizon", values = c('darkgreen', 'sienna4', 'grey1', 'grey60', 'darkorange2')) +
   geom_segment(aes(xend = CAP1, yend = CAP2, x = 0, y = 0), size = .7, data = arrowdf, color = "black", arrow = arrow(length = unit(0.05, "npc"))) +
   geom_text(aes(x = CAP1*1.35, y = CAP2*1.35, color = NULL, label = labels), size = 6, data = arrowdf) +
-  #facet_wrap(~myco, labeller = as_labeller(myco_names)) +
   theme(text = element_text(size=18), strip.text = element_text(size=18)) +
   labs(x = paste("Constrained axis 1 (",round(evals[1]*100, 0),"%)"), y = paste("Constrained axis 2 (",round(evals[2]*100, 0),"%)"))
 
@@ -277,7 +276,7 @@ plot_ordination(ps.nosd.log.sp, vegan::scores(rda.X4, scaling = 1), type="sites"
   labs(color = "Forest", shape = "Forest", x = paste("Constrained axis 1 (",round(evals[1]*100, 0),"%)"), y = paste("Constrained axis 2 (",round(evals[2]*100, 0),"%)"))
 
 #### Funguild ####
-guild <- read.table("ITS/ps.nosd.log.sp.29.05.dynamic_all_02.02.2019.minboot50.guilds.txt", header = TRUE, sep = "\t") # /!\ Has to be created with the same mdf
+guild <- read.table("data/ps.nosd.log.sp.29.05.dynamic_all_02.02.2019.minboot50.guilds.txt", header = TRUE, sep = "\t") # /!\ Has to be created with the same mdf
 
 # Merge guild info with abundance data
 ITS.guild  <- left_join(mdf, guild, by = c("OTU" = "OTU_ID"))
