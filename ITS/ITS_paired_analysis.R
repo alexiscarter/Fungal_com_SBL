@@ -304,6 +304,8 @@ ITS.guild$myco <- gsub("AM", "Maple", ITS.guild$myco)
 ITS.guild$myco <- gsub("ECM", "Beech", ITS.guild$myco)
 ITS.guild$myco = factor(ITS.guild$myco, levels = c('Maple', 'Mixed', 'Beech'))
 
+# save(ITS.guild, file="data/ITS.guild.rdata")
+
 ITS.sapro <- ITS.guild[ITS.guild$Trophic.Mode == "Saprotroph", ]
 ITS.ecm <- ITS.guild[ITS.guild$Guild == "Ectomycorrhizal", ]
 ITS.am <- ITS.guild[ITS.guild$Guild == "Arbuscular Mycorrhizal", ]
