@@ -32,7 +32,6 @@ out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, maxN=0, truncQ=6, rm.phix=TRUE,
                      truncLen = c(280,280), maxEE=c(3,3))
 
 mean(out[,2])/mean(out[,1])
-# 0.6297414
 
 #### Learn the Error Rates ####
 # It learns the error model from the data, by alternating estimation of the error rates and inference of sample
@@ -42,7 +41,7 @@ errR <- learnErrors(filtRs, nbases = 1e+10, multithread=TRUE)
 #### Dereplication ####
 #combines all identical sequencing reads into into “unique sequences” with a corresponding “abundance”
 #reduces computation time by eliminating redundant comparisons
-derepFs <- derepFastq(filtFs,  n = 1e+06) # default n = 1e+06, no change obseved when n = 1e+07
+derepFs <- derepFastq(filtFs,  n = 1e+06)
 derepRs <- derepFastq(filtRs, n = 1e+06)
 
 # Name the derep-class objects by the sample names
@@ -68,10 +67,7 @@ dim(seqtab)
 table(nchar(getSequences(seqtab)))
 
 # Inspect distribution of sequence lengths
-# write.table(length.var, file="dada2/saved_table/seqtab.length.var.ITS.paired.txt", row.names=TRUE, col.names=TRUE)
-pdf("dada2/saved_table/seqtab.length.var.plot.pdf")
 seqtab.length.var.plot <- plot(table(nchar(getSequences(seqtab))))
-dev.off()
 
 #### Remove chimeras ####
 seqtab.nochim <- removeBimeraDenovo(seqtab, method="pooled", multithread=TRUE, verbose=TRUE) 
@@ -81,16 +77,8 @@ sum(seqtab.nochim)/sum(seqtab) #  percentage of the total sequence reads
 # Inspect distribution of sequence lengths
 table(nchar(getSequences(seqtab.nochim)))
 
-# save seq table
-# write.table(seqtab.nochim, file="dada2/saved_table/seqtab.nochim.ITS.paired.10.05.txt", row.names=TRUE, col.names=TRUE)
-# save(seqtab.nochim, file="dada2/saved_table/seqtab.nochim.ITS.paired.10.05.rdata")
-
 #### Assign taxonomy ####
 taxa.paired <- assignTaxonomy(seqtab.nochim, "reference_database/sh_general_release_dynamic_all_02.02.2019.fasta", minBoot = 50, multithread=TRUE, verbose=TRUE)
-
-# save it
-# write.csv(taxa.paired, file = "dada2/saved_table/taxa.ITS.paired.13.05.dynamic_all_02.02.2019.minboot50.csv")
-# save(taxa.paired, file="dada2/saved_table/taxa.ITS.paired.13.05.dynamic_all_02.02.2019.minboot50.rda")
 
 #### Track reads through the pipeline ####
 getN <- function(x) sum(getUniques(x))
@@ -107,8 +95,4 @@ colnames(track) <- c("input",
                      "merged", 
                      "nonchim paired")
 rownames(track) <- sample.names
-# save it
-# write.table(track, file = "dada2/saved_table/track_ITS_10_05_2019.txt", row.names=TRUE, col.names=TRUE)
-
-
 
