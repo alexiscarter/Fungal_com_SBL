@@ -11,18 +11,6 @@ library(labdsv)
 library(emmeans)
 library(ggedit)
 
-
-# Package version
-packageVersion("phyloseq")
-packageVersion("dplyr")
-packageVersion("ggplot2"); theme_set(theme_bw())
-packageVersion("vegan")
-packageVersion("ddpcr") # use for the 'quiet()' function
-packageVersion("RVAideMemoire")
-packageVersion("stringi") 
-packageVersion("gridExtra") 
-packageVersion("labdsv") 
-
 #### Filtering and transformation ####
 load("data/ps.paired.ITS.29.05.minboot50.rda")
 ntaxa(ps)
@@ -35,8 +23,8 @@ ps.fungi = subset_taxa(ps, Kingdom=="k__Fungi")
 
 # Remove singletons and doubletons
 ps.fungi.nosd = filter_taxa(ps.fungi, function(x) sum(x) > 2, TRUE)
-sum(colSums(otu_table(ps.fungi.nosd))) # 2711899 sequences
-ntaxa(ps.fungi.nosd) # 2521 ASV
+sum(colSums(otu_table(ps.fungi.nosd)))
+ntaxa(ps.fungi.nosd)
 
 ## Shifted log transformation
 ps.nosd.log <- transform_sample_counts(ps.fungi.nosd, function(x) log(x+1))
@@ -55,21 +43,17 @@ ntaxa(ps.nosd.log.sp) # 781 taxa
 # Extract phyloseq S4 object in 1 df
 mdf = psmelt(ps.nosd.log.sp)
 
-
 ## Exploration ####
 ## Sequencing depth per samples
 depth.ps <- plot_bar(ps, x = "ID", y = "Abundance", fill = "Kingdom") +
   geom_bar(stat="identity", color = "black") +
   labs(x = "Sample ID", y = "Sequence abundance (untransformed)", title = "Distribution sequencing depth per sample")
-depth.ps
-# ggsave("ITS/depth.ps.pdf", width = 8, height = 8)
 
 ## reads per kingdom 
 depth.kingdom <- plot_bar(ps, fill = "Kingdom", x = "myco", y = "Abundance") +
   facet_grid(~horiz) +
   geom_bar(stat="identity", color = "black") +
   theme(legend.text = element_text(size=8))
-# ggsave("ITS/depth.kingdom.pdf", width = 6, height = 6)
 
 ## Check distribution of the lengths of the sequences after filtering
 mdf$seq_length <- stri_length(mdf$ASV)
@@ -77,9 +61,6 @@ mdf$seq_length <- stri_length(mdf$ASV)
 seq_length <- ggplot(mdf, aes(y = Abundance, x = seq_length, color = Phylum)) +
   geom_point(alpha = .4) +
   labs(x="Sequence length", y =  "Sequence abundance (Shifted log)")
-seq_length
-# ggsave("ITS/seq_length.pdf", width = 6, height = 6)
-
 
 ## plot ESV-abundance curve after filtering
 # calculate the mean and choose taxa
@@ -94,9 +75,6 @@ ggplot(clusterAgg,aes(x=reorder(OTU,-Abundance),y=Abundance)) +
 # Values for most abundant species (Shifted log)
 clusterAggSpecies = aggregate(Abundance ~ OTU + Genus + Species,data=mdf,sum) # sum or mean
 most.abund.50 <- clusterAggSpecies[order(-clusterAggSpecies$Abundance),][1:50,]
-#write.csv(most.abund.50, "ITS/most.abund.50.csv")
-
-#plot_bar(ps.fungi, fill = "Phylum") + facet_wrap(horiz~myco, ncol =3, scales = "free_x")
 
 # Alhpa diversity
 rich <- plot_richness(ps.fungi.nosd, x="myco", measures= "Observed") + 
@@ -106,9 +84,6 @@ rich <- plot_richness(ps.fungi.nosd, x="myco", measures= "Observed") +
   labs(x="Forest", y= "Observed richness (number of ASV)") +
   theme(axis.text.x = element_text(angle=45, vjust= 1, hjust=1), panel.grid.major.x = element_blank())
 rich %>% remove_geom('point')
-#ggsave("ITS/rihness.fungi.nosd.pdf", width = 7, height = 4)
-#ggsave("ITS/rihness.fungi.nosd.png", width = 7, height = 4)
-
 
 #### Ordination ####
 ps.fungi.ord <- ps.nosd.log.sp
@@ -128,8 +103,6 @@ plot_nmds <- plot_ordination(ps.fungi.ord, ord.nmds, type="samples", color = "ho
   theme(text = element_text(size=20), strip.text = element_text(size=20)) +
   xlim(c(-1.6,1.6)) + ylim(c(-1.6,1.6))
 plot_nmds
-#ggsave("ITS/nmds.bray.png", width = 12, height = 12)
-#ggsave("ITS/nmds.bray.pdf", width = 12, height = 12)
 
 ## nMDS with Sorensen dissimilarity
 quiet(ord.nmds.bin <- ordinate(ps.fungi.ord, method="NMDS", k = 2, try = 4000, distance = "bray", binary =TRUE))
@@ -145,9 +118,6 @@ plot_nmds_bin <- plot_ordination(ps.fungi.ord, ord.nmds.bin, type="samples", col
   theme(text = element_text(size=20), strip.text = element_text(size=20)) +
   xlim(c(-1.6,1.6)) + ylim(c(-1.6,1.6))
 plot_nmds_bin
-#ggsave("ITS/nmds.bin.png", width = 12, height = 12)
-#ggsave("ITS/nmds.bin.pdf", width = 12, height = 12)
-
 
 #### Permanova ####
 # Data
@@ -185,40 +155,6 @@ pairwise.perm.manova(phyloseq::distance(ps.perm, method = "bray", binary =TRUE),
 
 pairwise.perm.manova(phyloseq::distance(ps.perm, method = "bray", binary =TRUE), metadata$horiz, nperm=99999,
                      p.method = "fdr")
-
-#### Canonical Analysis (CCA) ####
-## CCA
-ord.cca <- ordinate(ps.fungi.ord, formula = ps.fungi.ord ~ CN+inorgP+orgP+BrayP+pHCaCl2+ECEC, method="CCA")
-#ord.cca <- ordinate(ps.fungi.ord, formula = ps.fungi.ord ~ CN+inorgP+orgP+BrayP+pHCaCl2+Al+Ca+Fe+K+Mn+Na, method="CCA")
-evals <- ord.cca$CCA$eig
-
-# Get stat
-rs <- RsquareAdj(ord.cca); rs
-pv <- anova.cca(ord.cca); pv
-
-# Check variance inflation factors 
-vif.cca(ord.cca)
-
-## Plot CCA with arrows for environmental data
-# Add the environmental variables as arrows
-arrowmat = vegan::scores(ord.cca, display = "bp")
-# Add labels, make a data.frame
-arrowdf <- data.frame(arrowmat)
-rownames(arrowdf) <- c("CN","inorgP","orgP","BrayP","pHCaCl2","ECEC")
-arrowdf <- data.frame(labels = c("CN","Pi","Po","BrayP","pHCaCl2","ECEC"), arrowmat)
-
-CA.log.paired.ITS.sp <- plot_ordination(ps.fungi.ord, vegan::scores(ord.cca, scaling=1), type="sites", color = "horiz") + 
-  coord_fixed(evals[2] / evals[1]) +
-  geom_point(size = 8, alpha = 1) +
-  geom_segment(aes(xend = CCA1, yend = CCA2, x = 0, y = 0), size = 0.8, data = arrowdf, color = "black", arrow = arrow(length = unit(0.025, "npc"))) + 
-  geom_text(aes(x = CCA1*1.3, y = CCA2*1.3, color = NULL, label = labels), size = 6, data = arrowdf) +
-  facet_wrap(~myco, labeller = as_labeller(myco_names)) +
-  theme(text = element_text(size=20), strip.text = element_text(size=20)) +
-  scale_color_manual(values = c('darkgreen', 'sienna4', 'grey1', 'grey60', 'darkorange2')) +
-  labs(x="CC axis 1", y= "CC axis 2", color = "Horizon") +
-  #labs(caption = paste("Adjusted R2 =", round(rs$adj.r.squared*100, 2), "%")) +
-  xlim(c(-1.4,1.4)) + ylim(c(-1.4,1.4))
-CA.log.paired.ITS.sp
 
 #### RDA and Variance paritioning ####
 # matrices Y
@@ -321,7 +257,6 @@ plot_ordination(ps.nosd.log.sp, vegan::scores(rda.X1, scaling = 1), type="sites"
   #facet_wrap(~myco, labeller = as_labeller(myco_names)) +
   theme(text = element_text(size=18), strip.text = element_text(size=18)) +
   labs(x = paste("Constrained axis 1 (",round(evals[1]*100, 0),"%)"), y = paste("Constrained axis 2 (",round(evals[2]*100, 0),"%)"))
-# ggsave("1.ITS/rda.chem.pdf", width = 8, height = 8)
 
 ## Plot RDA for myco data
 vif.cca(rda.X4)
@@ -340,8 +275,6 @@ plot_ordination(ps.nosd.log.sp, vegan::scores(rda.X4, scaling = 1), type="sites"
   coord_fixed(sqrt(evals[2] / evals[1])) +
   theme(text = element_text(size=18)) +
   labs(color = "Forest", shape = "Forest", x = paste("Constrained axis 1 (",round(evals[1]*100, 0),"%)"), y = paste("Constrained axis 2 (",round(evals[2]*100, 0),"%)"))
-#ggsave("ITS/rda.myco.png", width = 8, height = 8)
-#ggsave("ITS/rda.myco.pdf", width = 8, height = 8)
 
 #### Funguild ####
 guild <- read.table("ITS/ps.nosd.log.sp.29.05.dynamic_all_02.02.2019.minboot50.guilds.txt", header = TRUE, sep = "\t") # /!\ Has to be created with the same mdf
@@ -433,37 +366,4 @@ am.plot <- ggplot(am.mult, aes(x = myco, y = emmean, fill = horiz)) +
   labs(x = "", y = "Sequence mean abundance (Shifted log)", title = "AM")
 
 guild.plot <- grid.arrange(am.plot, sapro.plot, ecm.plot, nrow = 1, widths = c(1,1,1.1))
-guild.plot
-# ggsave("ITS/guild.am.ecm.sapro.SE.pdf", guild.plot, width = 8, height = 10)
-# ggsave("ITS/guild.am.ecm.sapro.SE.png", guild.plot, width = 8, height = 10)
-
-
-### Indicator species #### 
-iva <- indval(otu_table(ps.nosd.log.sp), sample_data(ps.nosd.log.sp)$myco_horiz)
-
-# Table of the significant indicator species
-gr <- iva$maxcls[iva$pval <= 0.05]
-iv <- iva$indcls[iva$pval <= 0.05]
-pv <- iva$pval[iva$pval <= 0.05]
-fr <- apply(otu_table(ps.nosd.log.sp) > 0, 2, sum)[iva$pval <= 0.05]
-fidg <- data.frame(group=gr, indval=iv, pvalue=pv, freq=fr)
-fidg <- fidg[order(fidg$group, -fidg$indval),]
-fidg$OTU <- rownames(fidg)
-
-groups <- data.frame(group = as.integer(rep(1:15)),
-                     myco_horiz=levels(sample_data(ps.nosd.log.sp)$myco_horiz))
-
-tax <- as.data.frame(as(tax_table(ps.nosd.log.sp), "matrix"))
-tax$OTU <- rownames(tax)
-
-indic.species <- fidg %>%
-  left_join(groups, by = 'group') %>%
-  left_join(tax, by = 'OTU')
-
-indic.max.species <- indic.species %>% 
-  group_by(group) %>% 
-  top_n(1, indval)
-indic.max.species[,c(2:13)]
-#write.csv(indic.max.species, "ITS/indic.max.species.csv")
-
 
