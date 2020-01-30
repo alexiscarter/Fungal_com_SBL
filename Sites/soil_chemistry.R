@@ -10,10 +10,8 @@ library(ggpubr)
 library(dplyr)
 
 load("data/soil3.rda")
-load("data/root2.rda")
-
-## Merge dataframes
-soil <- left_join(soil3, root2)
+#write.csv(soil3, file = "soil3.csv")
+soil <- soil3
 
 ## Reorder factors
 soil$horiz = factor(soil$horiz, levels = c('L', 'F', 'H', 'Ae', 'B'))
