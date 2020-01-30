@@ -74,7 +74,7 @@ ITS.sapro.sample <- ITS.sapro  %>%
   summarise(Abundance = sum(Abundance), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y)) %>% 
   mutate(rel = Abundance/max(Abundance)*100)
 
-sapro.lme <- lme(rel ~ myco*horiz, random = ~ 1 | block,  weights = varIdent(form = ~ 1 | horiz), data=ITS.sapro.sample)
+sapro.lme <- lme(Abundance ~ myco*horiz, random = ~ 1 | block,  weights = varIdent(form = ~ 1 | horiz), data=ITS.sapro.sample)
 anova(sapro.lme)
 plot(sapro.lme)
 sapro.tuckey <- emmeans(sapro.lme, pairwise ~ horiz*myco, adjust = "tukey")
@@ -85,7 +85,7 @@ ITS.ecm.sample <- ITS.ecm  %>%
   group_by(Sample) %>% 
   summarise(Abundance = sum(Abundance), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y)) %>% 
   mutate(rel = Abundance/max(Abundance)*100)
-ecm.lme <- lme(rel ~ myco*horiz, random = ~ 1 | block,  weights = varExp(), data=ITS.ecm.sample)
+ecm.lme <- lme(Abundance ~ myco*horiz, random = ~ 1 | block,  weights = varExp(), data=ITS.ecm.sample)
 anova(ecm.lme)
 plot(ecm.lme)
 
@@ -97,7 +97,7 @@ ITS.am.sample <- ITS.glomero  %>%
   group_by(Sample) %>% 
   summarise(Abundance = sum(Abundance), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y)) %>% 
   mutate(rel = Abundance/max(Abundance)*100)
-am.lme <- lme(rel ~ myco*horiz, random = ~ 1 | block,  weights = varExp(), data=ITS.am.sample)
+am.lme <- lme(Abundance ~ myco*horiz, random = ~ 1 | block,  weights = varExp(), data=ITS.am.sample)
 anova(am.lme)
 plot(am.lme)
 
@@ -108,7 +108,7 @@ am.mult <- CLD(am.tuckey,alpha=0.05,Letters=letters, adjust="tukey")
 ITS.eric.sample <- ITS.eric  %>% 
   group_by(Sample) %>% 
   summarise(Abundance = sum(Abundance), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y)) %>% 
-  mutate(rel = Abundance/max(Abundance)*100)
+  mutate(Abundance = Abundance/max(Abundance)*100)
 
 eric.lme <- lme(rel ~ myco*horiz, random = ~ 1 | block,  weights = varExp(), 
                 data=ITS.eric.sample)
