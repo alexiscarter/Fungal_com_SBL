@@ -205,3 +205,64 @@ guild.rel.plot <- ggarrange(am.colo.rel.plot, ecm.colo.rel.plot, sapro.rel.plot,
                             nrow = 2, ncol = 3, common.legend = TRUE, legend="right",
                             labels = c('a', 'b', 'c', 'd', 'e', 'f'), font.label = list(size = 8))
 
+## Diversity in guilds
+## For saprotrophs
+ITS.sapro$pres <- if_else(ITS.sapro$Abundance > 0, 1, 0)
+ITS.sapro.sample.div <- ITS.sapro  %>% 
+  group_by(Sample) %>% 
+  summarise(div = sum(pres), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y))
+
+sapro.div.lme <- lme(div ~ myco*horiz, random = ~ 1 | block,  weights = varPower(), data=ITS.sapro.sample.div)
+anova(sapro.div.lme)
+plot(sapro.div.lme)
+sapro.div.tuckey <- emmeans(sapro.div.lme, pairwise ~ myco*horiz, adjust = "tukey")
+sapro.div.mult <- CLD(sapro.div.tuckey,alpha=0.05,Letters=letters, adjust="tukey")
+
+sapro.div.plot <-ggplot(sapro.div.mult, aes(x = horiz, y = emmean, color = myco, shape = myco)) +
+  geom_line(position=position_dodge(width = .2), aes(linetype=myco, color=myco, group = myco)) +
+  geom_point(position=position_dodge(width = .2), size = 3) +
+  geom_errorbar(aes(ymin = emmean-SE, ymax = emmean+SE), width = 0.2, position=position_dodge(width = .2)) +
+  scale_color_manual(values = c('#1b9e77', '#d95f02', '#7570b3')) +
+  coord_flip() +
+  scale_y_continuous(position = "right") +
+  labs(x = "", y = "Saprotrophic fungal richness", linetype = "Forest", color = "Forest", shape = "Forest")+
+  theme_depth
+
+## For EcM
+ITS.ecm$pres <- if_else(ITS.ecm$Abundance > 0, 1, 0)
+ITS.ecm.sample.div <- ITS.ecm  %>% 
+  group_by(Sample) %>% 
+  summarise(div = sum(pres), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y))
+
+ecm.div.lme <- lme(div ~ myco*horiz, random = ~ 1 | block,  weights = varPower(), data=ITS.ecm.sample.div)
+anova(ecm.div.lme)
+plot(ecm.div.lme)
+ecm.div.tuckey <- emmeans(ecm.div.lme, pairwise ~ myco*horiz, adjust = "tukey")
+ecm.div.mult <- CLD(ecm.div.tuckey,alpha=0.05,Letters=letters, adjust="tukey")
+
+ecm.div.plot <-ggplot(ecm.div.mult, aes(x = horiz, y = emmean, color = myco, shape = myco)) +
+  geom_line(position=position_dodge(width = .2), aes(linetype=myco, color=myco, group = myco)) +
+  geom_point(position=position_dodge(width = .2), size = 3) +
+  geom_errorbar(aes(ymin = emmean-SE, ymax = emmean+SE), width = 0.2, position=position_dodge(width = .2)) +
+  scale_color_manual(values = c('#1b9e77', '#d95f02', '#7570b3')) +
+  coord_flip() +
+  scale_y_continuous(position = "right") +
+  labs(x = "", y = "EcM fungal richness", linetype = "Forest", color = "Forest", shape = "Forest")+
+  theme_depth
+
+## For EcM
+ITS.eric$pres <- if_else(ITS.eric$Abundance > 0, 1, 0)
+ITS.eric.sample.div <- ITS.eric  %>% 
+  group_by(Sample) %>% 
+  summarise(div = sum(pres), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y))
+
+## For AM
+ITS.glomero$pres <- if_else(ITS.glomero$Abundance > 0, 1, 0)
+ITS.glomero.sample.div <- ITS.glomero  %>% 
+  group_by(Sample) %>% 
+  summarise(div = sum(pres), ECM_perc = unique(ECM_perc), horiz = unique(horiz), myco = unique(myco), block = unique(block.y))
+
+guild.div.plot <- ggarrange(ecm.div.plot, sapro.div.plot, 
+                            nrow = 1, ncol = 2, common.legend = TRUE, legend="right",
+                            labels = c('a', 'b'), font.label = list(size = 8))
+
